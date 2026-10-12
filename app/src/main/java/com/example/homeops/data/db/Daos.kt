@@ -74,6 +74,18 @@ interface TaskDao {
     )
     fun observeActiveWithPlace(): Flow<List<TaskWithPlace>>
 
+    /** One-shot read of the same rows, for background work (reminders) that does not observe. */
+    @Query(
+        """
+        SELECT tasks.*, rooms.name AS roomName, rooms.weight AS roomWeight, zones.name AS zoneName
+        FROM tasks
+        JOIN rooms ON rooms.id = tasks.roomId
+        LEFT JOIN zones ON zones.id = tasks.zoneId
+        WHERE tasks.isActive = 1
+        """,
+    )
+    suspend fun getActiveWithPlace(): List<TaskWithPlace>
+
     @Query(
         """
         SELECT tasks.*, rooms.name AS roomName, rooms.weight AS roomWeight, zones.name AS zoneName
@@ -102,6 +114,12 @@ interface TaskDao {
     suspend fun setLastCompletedAt(
         taskId: Long,
         at: Instant?,
+    )
+
+    @Query("UPDATE tasks SET tauDays = :tauDays WHERE id = :taskId")
+    suspend fun setTau(
+        taskId: Long,
+        tauDays: Double,
     )
 }
 
@@ -158,4 +176,33 @@ interface CompletionDao {
 
     @Query("SELECT COUNT(*) FROM completion_events WHERE completedAt >= :since")
     fun observeCountSince(since: Instant): Flow<Int>
+
+    /** D at completion for a task, newest first (input to the "eager completion" tau rule). */
+    @Query(
+        "SELECT duenessAtCompletion FROM completion_events WHERE taskId = :taskId ORDER BY completedAt DESC LIMIT :limit",
+    )
+    suspend fun recentDueness(
+        taskId: Long,
+        limit: Int,
+    ): List<Double?>
+
+    /** Completion times (epoch ms) since a cutoff, for the reminder-time learner. */
+    @Query("SELECT completedAt FROM completion_events WHERE completedAt >= :sinceEpochMillis")
+    suspend fun completionMillisSince(sinceEpochMillis: Long): List<Long>
+}
+
+@Dao
+interface SnoozeDao {
+    @Insert
+    suspend fun insert(event: SnoozeEventEntity): Long
+
+    /** Snoozes of a task strictly after [since], i.e. the current streak when since = last completion. */
+    @Query("SELECT COUNT(*) FROM snooze_events WHERE taskId = :taskId AND at > :since")
+    suspend fun countSince(
+        taskId: Long,
+        since: Instant,
+    ): Int
+
+    @Query("SELECT * FROM snooze_events WHERE taskId = :taskId ORDER BY at DESC")
+    suspend fun forTask(taskId: Long): List<SnoozeEventEntity>
 }

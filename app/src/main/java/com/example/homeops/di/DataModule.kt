@@ -1,10 +1,17 @@
 package com.example.homeops.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import androidx.work.WorkManager
+import com.example.homeops.data.db.ALL_MIGRATIONS
 import com.example.homeops.data.db.CompletionDao
 import com.example.homeops.data.db.HomeOpsDatabase
 import com.example.homeops.data.db.RoomDao
+import com.example.homeops.data.db.SnoozeDao
 import com.example.homeops.data.db.TaskDao
 import com.example.homeops.data.db.ZoneDao
 import dagger.Module
@@ -30,8 +37,9 @@ object DataModule {
     ): HomeOpsDatabase =
         Room
             .databaseBuilder(context, HomeOpsDatabase::class.java, HomeOpsDatabase.NAME)
-            // Add .addMigrations(MIGRATION_1_2, ...) here as the schema evolves. Never use
+            // Every schema change adds a Migration to ALL_MIGRATIONS. Never use
             // fallbackToDestructiveMigration(): it would silently wipe the user's history.
+            .addMigrations(*ALL_MIGRATIONS)
             .build()
 
     @Provides fun provideRoomDao(db: HomeOpsDatabase): RoomDao = db.roomDao()
@@ -41,6 +49,20 @@ object DataModule {
     @Provides fun provideTaskDao(db: HomeOpsDatabase): TaskDao = db.taskDao()
 
     @Provides fun provideCompletionDao(db: HomeOpsDatabase): CompletionDao = db.completionDao()
+
+    @Provides fun provideSnoozeDao(db: HomeOpsDatabase): SnoozeDao = db.snoozeDao()
+
+    /** Exactly one DataStore per file per process, hence @Singleton. */
+    @Provides
+    @Singleton
+    fun provideSettingsStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> = PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
+
+    @Provides
+    fun provideWorkManager(
+        @ApplicationContext context: Context,
+    ): WorkManager = WorkManager.getInstance(context)
 
     /** Injected so time-dependent logic can be tested with a fixed clock. */
     @Provides

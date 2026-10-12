@@ -1,5 +1,6 @@
 package com.example.homeops.data.repo
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -34,7 +35,8 @@ import java.time.ZoneOffset
  * Robolectric supplies an Android Context on the JVM; it uses JUnit 4 (run via the vintage engine).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+// application = Application: skip HomeOpsApplication's Hilt/WorkManager startup in data tests.
+@Config(sdk = [34], application = Application::class)
 class M1AcceptanceTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val dbName = "m1-acceptance.db"
@@ -48,7 +50,8 @@ class M1AcceptanceTest {
         now: Instant,
     ): Pair<HomeRepository, TaskRepository> {
         val clock = Clock.fixed(now, ZoneOffset.UTC)
-        return HomeRepository(db.roomDao(), db.zoneDao()) to TaskRepository(db, db.taskDao(), db.completionDao(), clock)
+        return HomeRepository(db.roomDao(), db.zoneDao()) to
+            TaskRepository(db, db.taskDao(), db.completionDao(), db.snoozeDao(), clock)
     }
 
     private fun weekly(

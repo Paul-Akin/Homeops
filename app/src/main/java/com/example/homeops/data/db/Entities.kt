@@ -1,5 +1,6 @@
 package com.example.homeops.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -10,10 +11,10 @@ import com.example.homeops.domain.model.TaskSource
 import com.example.homeops.domain.model.TaskType
 import java.time.Instant
 
-// Room entities for M1 (DESIGN.md Sections 4.1, 4.2). Naming note: "Room" the Jetpack
+// Room entities (DESIGN.md Sections 4.1, 4.2). Naming note: "Room" the Jetpack
 // database library and "RoomEntity" the household room are unrelated; the clash is unfortunate
-// but RoomEntity keeps the design's vocabulary. Containers, items, photos, snoozes, correction
-// factors, and badges are added in later milestones, each with a migration.
+// but RoomEntity keeps the design's vocabulary. Containers, items, photos, correction factors,
+// and badges are added in later milestones, each with a migration.
 
 @Entity(tableName = "rooms")
 data class RoomEntity(
@@ -86,6 +87,11 @@ data class TaskEntity(
     val source: TaskSource = TaskSource.MANUAL,
     val isActive: Boolean = true,
     val supplies: List<String> = emptyList(),
+    /**
+     * w_task, priority multiplier in P = D * w_room * w_task (added in DB v2).
+     * defaultValue must match the DEFAULT in MIGRATION_1_2 or Room's schema check fails.
+     */
+    @ColumnInfo(defaultValue = "1.0") val weight: Double = 1.0,
 )
 
 /** Append-only completion log (DESIGN.md Section 4.2). */
@@ -112,4 +118,26 @@ data class CompletionEventEntity(
     val beforePhotoId: Long? = null,
     val afterPhotoId: Long? = null,
     val wasOnTime: Boolean,
+    /** D at the moment of completion (added in DB v2; null for older rows). Drives tau adaptation. */
+    val duenessAtCompletion: Double? = null,
+)
+
+/** One tap of "Snooze 3 h" on a reminder, per task in the digest (DESIGN.md Section 4.2, added in DB v2). */
+@Entity(
+    tableName = "snooze_events",
+    foreignKeys = [
+        ForeignKey(
+            entity = TaskEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["taskId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("taskId")],
+)
+data class SnoozeEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val taskId: Long,
+    val at: Instant,
+    val snoozeHours: Int,
 )
