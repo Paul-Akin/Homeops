@@ -12,24 +12,29 @@ object Tuning {
     // ---- Section 5.1: prior time estimate t0 = a_k + b_k * A * s ----
 
     /** One row of the prior table: setup minutes, minutes per ft², default area in ft². */
-    data class PriorRow(val setupMin: Double, val minPerFt2: Double, val defaultAreaFt2: Double)
+    data class PriorRow(
+        val setupMin: Double,
+        val minPerFt2: Double,
+        val defaultAreaFt2: Double,
+    )
 
     /**
      * DESIGN.md Section 5.1 starting table. OTHER is not in the design table;
      * a flat 5 min is engineering judgment so manual "other" tasks get a sane prior.
      */
-    val priorTable: Map<TaskType, PriorRow> = mapOf(
-        TaskType.VACUUM to PriorRow(3.0, 0.04, 150.0),
-        TaskType.MOP to PriorRow(5.0, 0.06, 100.0),
-        TaskType.WIPE to PriorRow(1.0, 0.25, 15.0),
-        TaskType.DUST to PriorRow(2.0, 0.05, 120.0),
-        TaskType.SCRUB to PriorRow(3.0, 0.6, 12.0),
-        TaskType.DECLUTTER to PriorRow(2.0, 0.3, 20.0),
-        TaskType.DISHES to PriorRow(5.0, 0.0, 0.0),
-        TaskType.LAUNDRY to PriorRow(10.0, 0.0, 0.0),
-        TaskType.TRASH to PriorRow(3.0, 0.0, 0.0),
-        TaskType.OTHER to PriorRow(5.0, 0.0, 0.0),
-    )
+    val priorTable: Map<TaskType, PriorRow> =
+        mapOf(
+            TaskType.VACUUM to PriorRow(3.0, 0.04, 150.0),
+            TaskType.MOP to PriorRow(5.0, 0.06, 100.0),
+            TaskType.WIPE to PriorRow(1.0, 0.25, 15.0),
+            TaskType.DUST to PriorRow(2.0, 0.05, 120.0),
+            TaskType.SCRUB to PriorRow(3.0, 0.6, 12.0),
+            TaskType.DECLUTTER to PriorRow(2.0, 0.3, 20.0),
+            TaskType.DISHES to PriorRow(5.0, 0.0, 0.0),
+            TaskType.LAUNDRY to PriorRow(10.0, 0.0, 0.0),
+            TaskType.TRASH to PriorRow(3.0, 0.0, 0.0),
+            TaskType.OTHER to PriorRow(5.0, 0.0, 0.0),
+        )
 
     /** Severity factor s = SEVERITY_BASE + SEVERITY_STEP * (severity - 1), giving s in [0.6, 1.4]. */
     const val SEVERITY_BASE = 0.6

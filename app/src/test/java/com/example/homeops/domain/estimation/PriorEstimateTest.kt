@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class PriorEstimateTest {
-
     @Test
     fun `severity factor spans 0_6 to 1_4 and clamps out-of-range input`() {
         assertEquals(0.6, PriorEstimate.severityFactor(1), 1e-12)

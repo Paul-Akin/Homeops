@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class FormValidationTest {
-
     private fun <T> FieldResult<T>.ok(): T = (this as FieldResult.Ok<T>).value
 
     private fun FieldResult<*>.isError(): Boolean = this is FieldResult.Error

@@ -35,11 +35,16 @@ object Dueness {
     }
 
     /** Elapsed days from [from] to [to], floored at 0 so clock skew never gives negative time. */
-    fun daysBetween(from: Instant, to: Instant): Double =
-        (Duration.between(from, to).toMillis() / MILLIS_PER_DAY).coerceAtLeast(0.0)
+    fun daysBetween(
+        from: Instant,
+        to: Instant,
+    ): Double = (Duration.between(from, to).toMillis() / MILLIS_PER_DAY).coerceAtLeast(0.0)
 
     /** D(t) = 1 - exp(-t / tau). Returns 0 at t = 0 and approaches 1 as t grows. */
-    fun dueness(daysSince: Double, tauDays: Double): Double {
+    fun dueness(
+        daysSince: Double,
+        tauDays: Double,
+    ): Double {
         require(tauDays > 0.0) { "tauDays must be positive" }
         return 1.0 - exp(-daysSince.coerceAtLeast(0.0) / tauDays)
     }
@@ -48,8 +53,11 @@ object Dueness {
      * Due-ness of a task right now. Never-completed tasks (lastCompletedAt == null)
      * are treated as due immediately, D = 1 (DESIGN.md Section 5.2).
      */
-    fun duenessAt(lastCompletedAt: Instant?, tauDays: Double, now: Instant): Double =
-        if (lastCompletedAt == null) 1.0 else dueness(daysBetween(lastCompletedAt, now), tauDays)
+    fun duenessAt(
+        lastCompletedAt: Instant?,
+        tauDays: Double,
+        now: Instant,
+    ): Double = if (lastCompletedAt == null) 1.0 else dueness(daysBetween(lastCompletedAt, now), tauDays)
 
     fun isDue(d: Double): Boolean = d >= Tuning.DUE_THRESHOLD
 
@@ -59,7 +67,12 @@ object Dueness {
      * Engineering judgment: for a task's first completion, t is measured from [createdAt]
      * rather than treating D as 1, otherwise every first completion would count as late.
      */
-    fun wasOnTime(lastCompletedAt: Instant?, createdAt: Instant, tauDays: Double, completedAt: Instant): Boolean {
+    fun wasOnTime(
+        lastCompletedAt: Instant?,
+        createdAt: Instant,
+        tauDays: Double,
+        completedAt: Instant,
+    ): Boolean {
         val reference = lastCompletedAt ?: createdAt
         return dueness(daysBetween(reference, completedAt), tauDays) <= Tuning.ON_TIME_THRESHOLD
     }
@@ -68,6 +81,9 @@ object Dueness {
      * M1 ordering for the Today list: highest D first, ties broken by [label] so the order is stable.
      * M2 replaces this with the weighted priority P = D * w_room * w_task.
      */
-    fun <T> orderByDueness(items: List<T>, dueness: (T) -> Double, label: (T) -> String): List<T> =
-        items.sortedWith(compareByDescending(dueness).thenBy(label))
+    fun <T> orderByDueness(
+        items: List<T>,
+        dueness: (T) -> Double,
+        label: (T) -> String,
+    ): List<T> = items.sortedWith(compareByDescending(dueness).thenBy(label))
 }
