@@ -1,7 +1,7 @@
 # Central dependency catalog. Gradle generates type-safe accessors from this file,
 # so app/build.gradle.kts can write `libs.room.runtime` instead of a raw coordinate.
 [versions]
-agp = "8.11.1"
+agp = "8.13.2"
 kotlin = "2.2.20"
 ksp = "2.2.20-2.0.3"
 hilt = "2.57.1"
