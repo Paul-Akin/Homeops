@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -51,7 +53,8 @@ android {
 }
 
 kotlin {
-    jvmToolchain(17)
+    // Bytecode target only; any installed JDK 17+ (e.g. Android Studio's bundled JDK 21) can run the build.
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
 }
 
 // Room Gradle plugin: exports the schema JSON for every DB version (DESIGN.md Section 13).
