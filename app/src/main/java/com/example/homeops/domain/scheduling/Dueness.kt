@@ -13,7 +13,7 @@ import kotlin.math.ln
  * The due threshold D* is reached at t* = -tau * ln(1 - D*), which is tau * ln 5 for D* = 0.8.
  * So a nominal frequency of F days maps to tau = F / ln 5.
  *
- * Priority weighting, tau adaptation, and reminders arrive in M2 (DecayScheduler).
+ * Priority weighting and tau adaptation live in [DecayScheduler].
  */
 object Dueness {
     private const val MILLIS_PER_DAY = 86_400_000.0
@@ -76,14 +76,4 @@ object Dueness {
         val reference = lastCompletedAt ?: createdAt
         return dueness(daysBetween(reference, completedAt), tauDays) <= Tuning.ON_TIME_THRESHOLD
     }
-
-    /**
-     * M1 ordering for the Today list: highest D first, ties broken by [label] so the order is stable.
-     * M2 replaces this with the weighted priority P = D * w_room * w_task.
-     */
-    fun <T> orderByDueness(
-        items: List<T>,
-        dueness: (T) -> Double,
-        label: (T) -> String,
-    ): List<T> = items.sortedWith(compareByDescending(dueness).thenBy(label))
 }

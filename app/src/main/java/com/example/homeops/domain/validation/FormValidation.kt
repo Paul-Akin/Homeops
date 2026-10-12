@@ -86,6 +86,24 @@ object FormValidation {
         }
     }
 
+    /** Task priority multiplier w_task. Blank means the default 1.0. */
+    fun taskWeight(raw: String): FieldResult<Double> {
+        if (raw.isBlank()) return FieldResult.Ok(1.0)
+        return when (val v = parseFiniteDouble(raw)) {
+            null -> {
+                FieldResult.Error("Enter a number")
+            }
+
+            !in Tuning.TASK_WEIGHT_MIN..Tuning.TASK_WEIGHT_MAX -> {
+                FieldResult.Error("Weight must be ${fmt(Tuning.TASK_WEIGHT_MIN)} to ${fmt(Tuning.TASK_WEIGHT_MAX)}")
+            }
+
+            else -> {
+                FieldResult.Ok(v)
+            }
+        }
+    }
+
     fun floor(raw: String): FieldResult<Int> {
         if (raw.isBlank()) return FieldResult.Ok(1)
         return when (val v = raw.trim().toIntOrNull()) {

@@ -61,6 +61,50 @@ object Tuning {
     /** Default frequency offered when a user creates a task manually (engineering judgment). */
     const val FREQUENCY_DAYS_DEFAULT = 7.0
 
+    // ---- Section 5.2: priority and tau adaptation (DecayScheduler) ----
+
+    /** tau is always clamped to this range in days (Section 5.2 photo-adaptation clamp, applied to all updates). */
+    const val TAU_DAYS_MIN = 0.5
+    const val TAU_DAYS_MAX = 180.0
+
+    /** Snoozed this many times in a row: user thinks the task is too frequent. */
+    const val SNOOZE_STREAK = 3
+    const val TAU_FACTOR_SNOOZED = 1.15
+
+    /** Completed while D < EAGER_DUENESS this many times in a row: user wants it more often. */
+    const val EAGER_STREAK = 3
+    const val EAGER_DUENESS = 0.5
+    const val TAU_FACTOR_EAGER = 0.9
+
+    /** Task priority multiplier w_task range (engineering judgment, same as rooms). */
+    const val TASK_WEIGHT_MIN = 0.1
+    const val TASK_WEIGHT_MAX = 5.0
+
+    // ---- Section 5.3: reminder timing (NotificationTimeLearner) ----
+
+    /** Completions older than this are ignored when learning the preferred time. */
+    const val LEARN_LOOKBACK_DAYS = 60L
+
+    /** Learned time is used only with at least this many samples ... */
+    const val LEARN_MIN_SAMPLES = 5
+
+    /** ... and a mean resultant length R at least this large (R = 1: all at one time; R = 0: uniform). */
+    const val LEARN_MIN_R = 0.5
+
+    /** Notify this many minutes before the learned mean time. */
+    const val LEAD_MINUTES = 30L
+
+    /** Defaults for the user-editable reminder settings (minutes after midnight). */
+    const val DEFAULT_REMINDER_MINUTE = 18 * 60
+    const val DEFAULT_QUIET_START_MINUTE = 22 * 60
+    const val DEFAULT_QUIET_END_MINUTE = 8 * 60
+
+    /** Section 8: "Snooze 3 h" notification action. */
+    const val SNOOZE_HOURS = 3
+
+    /** Overdue nudge: D above the on-time limit, sent at most once a day this long after the digest. */
+    const val OVERDUE_NUDGE_DELAY_HOURS = 3L
+
     // ---- Form validation (engineering judgment; Section 6.4 area clamp reused) ----
     const val NAME_MAX_LENGTH = 80
     const val AREA_FT2_MIN = 0.5

@@ -87,15 +87,4 @@ class DuenessTest {
         assertTrue(Dueness.wasOnTime(null, t0, tau, daysLater(2.0)))
         assertFalse(Dueness.wasOnTime(null, t0, tau, daysLater(20.0)))
     }
-
-    @Test
-    fun `today ordering is by D descending with stable label tiebreak`() {
-        data class Row(
-            val label: String,
-            val d: Double,
-        )
-        val rows = listOf(Row("b", 0.5), Row("a", 1.0), Row("c", 0.9), Row("a2", 0.5))
-        val ordered = Dueness.orderByDueness(rows, { it.d }, { it.label })
-        assertEquals(listOf("a", "c", "a2", "b"), ordered.map { it.label })
-    }
 }

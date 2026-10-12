@@ -62,4 +62,13 @@ class FormValidationTest {
         assertEquals(3, FormValidation.severity(3))
         assertEquals(5, FormValidation.severity(8))
     }
+
+    @Test
+    fun `task weight defaults to 1 and is bounded`() {
+        assertEquals(1.0, FormValidation.taskWeight("").ok())
+        assertEquals(0.5, FormValidation.taskWeight("0.5").ok())
+        assertTrue(FormValidation.taskWeight("0.05").isError())
+        assertTrue(FormValidation.taskWeight("6").isError())
+        assertTrue(FormValidation.taskWeight("x").isError())
+    }
 }
