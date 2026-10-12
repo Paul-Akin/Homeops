@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple house glyph inside the 72dp adaptive-icon safe zone (108dp canvas). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 L78,50 L72,50 L72,76 L60,76 L60,60 L48,60 L48,76 L36,76 L36,50 L30,50 Z" />
+</vector>
