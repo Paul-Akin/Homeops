@@ -129,6 +129,22 @@ object NotificationTimeLearner {
         return tomorrow.atStartOfDay(now.zone).plusMinutes(tomorrowTime.minuteOfDay.toLong()) to tomorrowTime
     }
 
+    /**
+     * The first instant at or after [at] outside quiet hours. Used for snoozed reminders:
+     * snoozing at 9:30 PM for 3 h lands at 12:30 AM, which moves to 8:00 AM that morning; a
+     * time late in the evening (after quiet start) moves to quiet end on the next day.
+     */
+    fun nextAllowed(
+        at: ZonedDateTime,
+        settings: ReminderSettings,
+    ): ZonedDateTime {
+        val m = at.hour * 60 + at.minute
+        val shifted = applyQuietHours(m, settings.quietStartMinute, settings.quietEndMinute)
+        if (shifted == m) return at
+        val sameDay = at.toLocalDate().atStartOfDay(at.zone).plusMinutes(shifted.toLong())
+        return if (sameDay.isAfter(at)) sameDay else sameDay.plusDays(1)
+    }
+
     /** True if [at] falls inside quiet hours (used to drop overdue nudges rather than delay them). */
     fun isQuiet(
         at: ZonedDateTime,

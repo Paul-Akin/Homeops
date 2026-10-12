@@ -121,6 +121,14 @@ fun TaskEditScreen(
                 supportingText = "Becomes due after this many days",
             )
             FormTextField(
+                form.weight,
+                { v -> viewModel.onFormChange { it.copy(weight = v) } },
+                "Priority weight",
+                errors.weight.takeIf { show },
+                numeric = true,
+                supportingText = "1 = normal; higher sorts it earlier on Today",
+            )
+            FormTextField(
                 form.area,
                 { v -> viewModel.onFormChange { it.copy(area = v) } },
                 "Area (ft², optional)",

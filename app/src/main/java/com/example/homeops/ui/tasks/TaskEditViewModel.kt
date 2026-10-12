@@ -38,11 +38,13 @@ data class TaskForm(
     val frequencyDays: String = Format.days(Tuning.FREQUENCY_DAYS_DEFAULT),
     val severity: Int = Tuning.SEVERITY_DEFAULT,
     val isActive: Boolean = true,
+    val weight: String = "1",
 ) {
     data class Errors(
         val title: String?,
         val area: String?,
         val frequency: String?,
+        val weight: String?,
     )
 
     fun errors() =
@@ -50,6 +52,7 @@ data class TaskForm(
             title = FormValidation.name(title).errorOrNull,
             area = FormValidation.optionalAreaFt2(area).errorOrNull,
             frequency = FormValidation.frequencyDays(frequencyDays).errorOrNull,
+            weight = FormValidation.taskWeight(weight).errorOrNull,
         )
 
     fun toDraftOrNull(
@@ -59,6 +62,7 @@ data class TaskForm(
         val t = FormValidation.name(title) as? FieldResult.Ok<String> ?: return null
         val a = FormValidation.optionalAreaFt2(area) as? FieldResult.Ok<Double?> ?: return null
         val f = FormValidation.frequencyDays(frequencyDays) as? FieldResult.Ok<Double> ?: return null
+        val w = FormValidation.taskWeight(weight) as? FieldResult.Ok<Double> ?: return null
         return TaskDraft(
             id = id,
             roomId = roomId,
@@ -69,6 +73,7 @@ data class TaskForm(
             severity = FormValidation.severity(severity),
             frequencyDays = f.value,
             isActive = isActive,
+            weight = w.value,
         )
     }
 
@@ -127,6 +132,7 @@ class TaskEditViewModel
                             frequencyDays = Format.days(Dueness.frequencyDaysFromTau(task.tauDays)),
                             severity = task.severity,
                             isActive = task.isActive,
+                            weight = Format.days(task.weight),
                         )
                     editor.update { it.copy(isLoaded = true, form = form) }
                 }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- M1 needs no permissions. POST_NOTIFICATIONS (M2) and CAMERA (M4) are added later. -->
+    <!-- Android 13+: runtime permission, requested from Settings when reminders are turned on. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".HomeOpsApplication"
@@ -16,12 +18,31 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- "Snooze 3 h" notification action. Not exported: only our own PendingIntent can reach it. -->
+        <receiver
+            android:name=".notify.SnoozeReceiver"
+            android:exported="false" />
+
+        <!-- WorkManager is initialized by HomeOpsApplication (Configuration.Provider, for Hilt workers),
+             so its default auto-initializer is removed here. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

@@ -87,6 +87,11 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.androidx.compiler) // generates the factories for @HiltWorker classes
+    implementation(libs.datastore.preferences)
+
     // Unit tests: JUnit 5 for pure-Kotlin domain tests; the vintage engine runs
     // JUnit 4 tests on the same platform (Robolectric only supports JUnit 4 runners).
     testImplementation(platform(libs.junit.bom))
@@ -98,4 +103,5 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.work.testing)
 }

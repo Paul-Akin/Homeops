@@ -3,7 +3,9 @@ package com.example.homeops.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.homeops.data.db.TaskWithPlace
+import com.example.homeops.data.prefs.SettingsRepository
 import com.example.homeops.data.repo.TaskRepository
+import com.example.homeops.domain.scheduling.DecayScheduler
 import com.example.homeops.domain.scheduling.Dueness
 import com.example.homeops.ui.common.ticker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +29,8 @@ data class TodayItem(
     val title: String,
     val place: String,
     val dueness: Double,
+    /** P = D * w_room * w_task, the Today ordering key. */
+    val priority: Double,
     val isDue: Boolean,
     val estMinutes: Double,
     val lastCompletedAt: Instant?,
@@ -46,6 +50,8 @@ data class TodayUiState(
     val completedToday: Int = 0,
     val now: Instant = Instant.EPOCH,
     val pendingUndo: PendingUndo? = null,
+    /** Show the "turn on reminders" banner. */
+    val remindersOff: Boolean = false,
 )
 
 /**
@@ -58,6 +64,7 @@ class TodayViewModel
     @Inject
     constructor(
         private val tasks: TaskRepository,
+        settings: SettingsRepository,
         private val clock: Clock,
     ) : ViewModel() {
         private val pendingUndo = MutableStateFlow<PendingUndo?>(null)
@@ -74,8 +81,14 @@ class TodayViewModel
                 }
 
         val state: StateFlow<TodayUiState> =
-            combine(tasks.observeActiveTasks(), now, completedToday, pendingUndo) { rows, t, doneToday, undo ->
-                val items = Dueness.orderByDueness(rows.map { it.toItem(t) }, { it.dueness }, { it.title })
+            combine(
+                tasks.observeActiveTasks(),
+                now,
+                completedToday,
+                pendingUndo,
+                settings.reminderSettings,
+            ) { rows, t, doneToday, undo, reminders ->
+                val items = DecayScheduler.orderByPriority(rows.map { it.toItem(t) }, { it.priority }, { it.title })
                 val (due, upcoming) = items.partition { it.isDue }
                 TodayUiState(
                     isLoading = false,
@@ -85,6 +98,7 @@ class TodayViewModel
                     completedToday = doneToday,
                     now = t,
                     pendingUndo = undo,
+                    remindersOff = !reminders.enabled,
                 )
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
@@ -111,6 +125,7 @@ class TodayViewModel
                 title = task.title,
                 place = listOfNotNull(roomName, zoneName).joinToString(" · "),
                 dueness = d,
+                priority = DecayScheduler.priority(d, roomWeight, task.weight),
                 isDue = Dueness.isDue(d),
                 estMinutes = task.estMinutesPrior,
                 lastCompletedAt = task.lastCompletedAt,

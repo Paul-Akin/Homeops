@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -26,6 +28,7 @@ import com.example.homeops.ui.home.TodayScreen
 import com.example.homeops.ui.log.LogScreen
 import com.example.homeops.ui.rooms.RoomDetailScreen
 import com.example.homeops.ui.rooms.RoomsScreen
+import com.example.homeops.ui.settings.SettingsScreen
 import com.example.homeops.ui.tasks.TaskEditScreen
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -38,6 +41,8 @@ import kotlin.reflect.KClass
 @Serializable object RoomsRoute
 
 @Serializable object LogRoute
+
+@Serializable object SettingsRoute
 
 @Serializable data class RoomDetailRoute(
     val roomId: Long,
@@ -61,7 +66,17 @@ private val topLevels =
         TopLevel("Today", Icons.Filled.Home, TodayRoute, TodayRoute::class),
         TopLevel("Rooms", Icons.Filled.Place, RoomsRoute, RoomsRoute::class),
         TopLevel("Log", Icons.AutoMirrored.Filled.List, LogRoute, LogRoute::class),
+        TopLevel("Settings", Icons.Filled.Settings, SettingsRoute, SettingsRoute::class),
     )
+
+/** Standard bottom-nav behavior: one copy of each tab, state saved and restored on return. */
+private fun NavController.navigateTopLevel(route: Any) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
 @Composable
 fun HomeOpsNavHost() {
@@ -79,14 +94,7 @@ fun HomeOpsNavHost() {
                     val selected = destination?.hierarchy?.any { it.hasRoute(item.routeClass) } == true
                     NavigationBarItem(
                         selected = selected,
-                        onClick = {
-                            // Standard bottom-nav behavior: one copy of each tab, state restored on return.
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onClick = { navController.navigateTopLevel(item.route) },
                         icon = { Icon(item.icon, contentDescription = null) },
                         label = { Text(item.label) },
                     )
@@ -100,13 +108,19 @@ fun HomeOpsNavHost() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable<TodayRoute> {
-                TodayScreen(onOpenRooms = { navController.navigate(RoomsRoute) })
+                TodayScreen(
+                    onOpenRooms = { navController.navigateTopLevel(RoomsRoute) },
+                    onOpenSettings = { navController.navigateTopLevel(SettingsRoute) },
+                )
             }
             composable<RoomsRoute> {
                 RoomsScreen(onOpenRoom = { id -> navController.navigate(RoomDetailRoute(id)) })
             }
             composable<LogRoute> {
                 LogScreen()
+            }
+            composable<SettingsRoute> {
+                SettingsScreen()
             }
             composable<RoomDetailRoute> {
                 RoomDetailScreen(

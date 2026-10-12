@@ -171,4 +171,18 @@ class NotificationTimeLearnerTest {
         assertTrue(NotificationTimeLearner.isQuiet(ZonedDateTime.of(monday.atTime(23, 0), zone), settings))
         assertFalse(NotificationTimeLearner.isQuiet(ZonedDateTime.of(monday.atTime(12, 0), zone), settings))
     }
+
+    @Test
+    fun `snoozed reminder skips quiet hours`() {
+        val at = { d: LocalDate, h: Int, m: Int -> ZonedDateTime.of(d.atTime(h, m), zone) }
+        // 21:30 + 3 h = 00:30 Tuesday, inside quiet hours: moves to 08:00 Tuesday.
+        assertEquals(
+            at(monday.plusDays(1), 8, 0),
+            NotificationTimeLearner.nextAllowed(at(monday.plusDays(1), 0, 30), settings),
+        )
+        // 23:15 Monday: next allowed is 08:00 Tuesday, not 08:00 Monday (in the past).
+        assertEquals(at(monday.plusDays(1), 8, 0), NotificationTimeLearner.nextAllowed(at(monday, 23, 15), settings))
+        // Outside quiet hours: unchanged.
+        assertEquals(at(monday, 15, 0), NotificationTimeLearner.nextAllowed(at(monday, 15, 0), settings))
+    }
 }
