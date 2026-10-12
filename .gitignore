@@ -1,0 +1,49 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+captures/
+.externalNativeBuild/
+.cxx/
+.navigation/
+
+# Local configuration (SDK path, secrets)
+local.properties
+secrets.properties
+*.env
+.env*
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+app/release/
+app/debug/
+
+# Signing / keystores
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+
+# Logs and OS cruft
+*.log
+.DS_Store
+Thumbs.db
+
+# Proxy (Cloudflare Worker, Node)
+proxy/node_modules/
+proxy/.wrangler/
+proxy/.dev.vars
