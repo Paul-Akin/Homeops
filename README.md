@@ -11,7 +11,11 @@ Android household cleaning assistant. Spec: [`DESIGN.md`](DESIGN.md). Working ru
 
 ## Build and test
 
-Requirements: Android Studio (Narwhal or newer) or a JDK 17+ with the Android SDK (platform 36) installed.
+Requirements: Android Studio (Narwhal or newer), or the Android SDK (platform 36) plus a JDK.
+
+The build runs on **Java 21**, declared in `gradle/gradle-daemon-jvm.properties`. Gradle and Android Studio pick a
+installed JDK 21 automatically even if your default Java is newer (Gradle 8.14 cannot run on Java 25). If no JDK 21 is
+installed, install one (for example `winget install EclipseAdoptium.Temurin.21.JDK`) or let Android Studio download it.
 
 ```bash
 ./gradlew test              # JVM unit tests: domain (JUnit 5) + data layer (Robolectric via JUnit vintage)
